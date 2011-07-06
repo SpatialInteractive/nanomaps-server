@@ -1,0 +1,33 @@
+<project name="nanomaps-server" default="compile">
+	<property name="common.dir" location="../common"/>
+	<property name="depend.dir" location="${common.dir}/depend"/>
+	
+	<path id="depend.path">
+		<fileset dir="${depend.dir}">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	
+	<target name="compile">
+		<mkdir dir="build/classes"/>
+		<javac srcdir="src" destdir="build/classes" includeantruntime="false" debug="true">
+			<classpath refid="depend.path"/>
+		</javac>
+	</target>
+	
+	<target name="clean">
+		<delete dir="build"/>
+	</target>
+	
+	
+	<target name="run" depends="compile">
+		<java classname="net.rcode.nanomaps.server.ServerMain" fork="true">
+			<jvmarg value="-Djava.library.path=${depend.dir}"/>
+			<jvmarg value="-Dlog4j.configuration=file:test/log4j.properties"/>
+			<classpath>
+				<pathelement location="build/classes"/>
+				<path refid="depend.path"/>
+			</classpath>
+		</java>
+	</target>
+</project>

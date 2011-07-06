@@ -1,0 +1,71 @@
+<project name="common" default="depend">
+	<!-- Build dependencies -->
+	<property name="depend.dir" location="depend"/>
+	<property name="mapnik-jni.dir" location="../external/mapnik-jni"/>
+	<property name="sqlite4java.dir" location="../external/sqlite4java-custom"/>
+	<property name="rccoreutil.dir" location="../external/rccoreutil"/>
+	
+	<target name="clean" depends="clean-depend">
+		<delete dir="${depend.dir}"/>
+	</target>
+	
+	<target name="clean-depend" depends="clean-rccoreutil,clean-mapnik-jni,clean-sqlite4java"/>
+	
+	<target name="-depend-init">
+		<mkdir dir="${depend.dir}"/>
+	</target>
+	<target name="depend-libs" depends="-depend-init">
+		<copy todir="${depend.dir}">
+			<fileset dir="lib">
+				<include name="*.jar"/>
+			</fileset>
+		</copy>
+	</target>
+	<target name="depend-rccoreutil"  depends="-depend-init">
+		<ant dir="${rccoreutil.dir}" target="depend" inheritall="false"/>
+		<ant dir="${rccoreutil.dir}" target="jar" inheritall="false"/>
+		<copy todir="${depend.dir}">
+			<fileset dir="${rccoreutil.dir}/lib/jar">
+				<include name="*.jar"/>
+			</fileset>
+			<fileset dir="${rccoreutil.dir}/build/dist">
+				<include name="*.jar"/>
+			</fileset>
+			<fileset dir="${rccoreutil.dir}/build/depend">
+				<include name="*.jar"/>
+			</fileset>
+		</copy>
+	</target>
+	<target name="clean-rccoreutil">
+		<ant dir="${rccoreutil.dir}" target="clean" inheritall="false"/>
+	</target>
+		
+	<target name="depend-mapnik-jni" depends="-depend-init">
+		<ant dir="${mapnik-jni.dir}" target="all" inheritall="false"/>
+		<copy todir="${depend.dir}">
+			<fileset dir="${mapnik-jni.dir}/build/dist"/>
+		</copy>
+	</target>
+	<target name="clean-mapnik-jni">
+		<ant dir="${mapnik-jni.dir}" target="clean" inheritall="false"/>
+	</target>
+	
+	<target name="depend-sqlite4java" depends="-depend-init">
+		<condition property="sqlite.make.args" value="SQLITE_USE_BUNDLED=1">
+			<os family="mac"/>
+		</condition>
+		<property name="sqlite.make.args" value=""/>
+		
+		<ant dir="${sqlite4java.dir}/custom" target="all" inheritall="false">
+			<property name="make.args" value="${sqlite.make.args}"/>
+		</ant>
+		<copy todir="${depend.dir}">
+			<fileset dir="${sqlite4java.dir}/custom/build/dist"/>
+		</copy>
+	</target>
+	<target name="clean-sqlite4java">
+		<ant dir="${sqlite4java.dir}/custom" target="clean" inheritall="false"/>
+	</target>
+	
+	<target name="depend" depends="depend-libs,depend-rccoreutil,depend-mapnik-jni,depend-sqlite4java"/>
+</project>
