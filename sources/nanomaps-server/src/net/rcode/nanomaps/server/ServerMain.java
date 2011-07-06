@@ -7,9 +7,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import net.rcode.assetserver.core.MimeMapping;
 import net.rcode.core.httpserver.HttpServer;
 import net.rcode.core.httpserver.SimpleRequestDispatcher;
 import net.rcode.core.io.NamedThreadFactory;
+import net.rcode.core.web.FilesRequestHandler;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelFactory;
@@ -58,13 +60,22 @@ public class ServerMain {
 		repository.scan();
 		
 		RenderService renderService=new RenderService(Runtime.getRuntime().availableProcessors()+1);
-		
+
 
 		// Http Server setup
 		SimpleRequestDispatcher mainDispatcher=new SimpleRequestDispatcher();
 		server.getDispatchers().add(mainDispatcher);
+
+		// URL Rewrites (must come first)
+		mainDispatcher.rewriteStatic("/", "/static/index.html");
 		
+		// Main map request handler
 		mainDispatcher.pathPrefix("/map", true, new MapRequestHandler(repository, renderService));
+		
+		// Static files
+		File docRoot=new File("web");
+		FilesRequestHandler files=new FilesRequestHandler(null, null, docRoot);
+		mainDispatcher.pathPrefix("/static", true, files);
 		
 		// Listen
 		logger.info("Starting server on port " + serverPort);

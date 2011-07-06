@@ -61,9 +61,7 @@ an exercise to the reader):
 
 If you are on Windows, you have my condolences.
 
-#### Building
-
-Clone the repository:
+### Clone Repository
 
 	git clone --recursive git://github.com/stellaeof/nanomaps-server.git
 	cd nanomaps-server
@@ -71,7 +69,7 @@ Clone the repository:
 	# Skip the following if you cloned recursively
 	scripts/update-modules.sh
 	
-#### Build dependencies
+### Build dependencies
 
 	ant depend
 	
@@ -80,7 +78,7 @@ in the external/directory is built, including native bits.  If your build enviro
 issues, you will get errors on the native build steps.  If you managed to build
 mapnik and its input plugins, you should be fine.
 
-#### Run the server at the console
+### Run the server at the console
 
 	ant instance
 	ant run
@@ -89,4 +87,5 @@ mapnik and its input plugins, you should be fine.
 'ant run' right after checkout.  This will take care of everything for you
 but if something goes wrong, it's going to be a little difficult to figure
 out what happened)
+
 

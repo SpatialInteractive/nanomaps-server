@@ -37,8 +37,6 @@
 		<!-- Compile -->
 		<ant dir="sources/nanomaps-server" target="jar" inheritall="false"/>
 		<copy todir="${instance.dir}/lib" file="sources/nanomaps-server/build/nanomaps-server.jar"/>
-		
-		
 	</target>
 	
 	<!-- Clean local sources -->
@@ -69,6 +67,7 @@
 	
 	<!-- Run -->
 	<target name="run" depends="instance,report-ulimit">
+		<property name="run.options" value=""/>
 		<mkdir dir="${instance.dir}/logs"/>
 		<java classname="net.rcode.nanomaps.server.ServerMain" 
 			fork="true"
@@ -76,6 +75,7 @@
 			>
 			<sysproperty key="log4j.configuration" value="file:etc/log4j-console.properties"/>
 			<sysproperty key="java.library.path" value="lib"/>
+			<jvmarg line="${run.options}"/>
 			<arg value="etc/server-defaults.properties"/>
 			<arg value="etc/server-local.properties"/>
 			
@@ -86,6 +86,14 @@
 			</classpath>
 		</java>
 	</target>
+	
+	<target name="-debug-setup">
+		<property name="debug.suspend" value="n"/>
+		<property name="debug.port" value="1044"/>
+		<echo>Launching process with debug.suspend=${debug.suspend} and debug.port=${debug.port}</echo>
+		<property name="run.options" value="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=${debug.suspend},address=${debug.port}"/>
+	</target>
+	<target name="debug" depends="-debug-setup,run"/>
 </project>
 
 
