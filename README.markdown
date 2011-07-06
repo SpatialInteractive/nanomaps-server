@@ -6,7 +6,7 @@ and should therefore be moderately memory efficient when it comes
 to serving a large number of clients.  Also, since it runs in
 a single process, it opens the door for some better traffic control
 mechanisms than are (easily) possible with other solutions that
-run within apache.
+run within apache or other http servers.
 
 It internally uses [Mapnik](http://mapnik.org/) to render the maps
 via [the Mapnik JNI bindings](https://github.com/stellaeof/mapnik-jni).
@@ -14,6 +14,7 @@ via [the Mapnik JNI bindings](https://github.com/stellaeof/mapnik-jni).
 It also leverages [SQLite](http://www.sqlite.org/) via some [hacked custom
 Java bindings](https://github.com/stellaeof/sqlite4java-custom) that are based
 on [sqlite4java](http://code.google.com/p/sqlite4java/) to manage tile caching.
+This part is still being worked on offline and is not in this repo.
 
 Everything is self contained in this repo.  You don't need any Java expertise
 to use it.
@@ -46,6 +47,20 @@ on your box, you are probably in good shape:
 * /usr/local/lib/mapnik2/input/
 * /usr/local/lib/mapnik2/fonts/
 
+This is probably also the right time to let you know that you are going to need
+a Java 6 JDK and Apache Ant >= 1.7.  This is the part where if you're not a Java
+person, you break off the date and go home and complain to your friends.  But do
+not fear, this paragraph represents the sum total of what you need to know about
+Java in order to proceed.  If you are running any non ancient version of OSX, you're
+probably set out of the box.  If you are on Ubuntu, the following packages should
+get you going (trimming this down for servers and headless machines is left as
+an exercise to the reader):
+
+* apt-get install openjdk-6-jdk
+* apt-get install ant
+
+If you are on Windows, you have my condolences.
+
 #### Building
 
 Clone the repository:
@@ -60,8 +75,8 @@ Clone the repository:
 
 	ant depend
 	
-This is the part where if something can go wrong it will.  This builds everything
-in the external/directory, including native bits.  If your build environment has
+This is the part where if something can go wrong it will.  Everything
+in the external/directory is built, including native bits.  If your build environment has
 issues, you will get errors on the native build steps.  If you managed to build
 mapnik and its input plugins, you should be fine.
 

@@ -15,6 +15,10 @@
 		</javac>
 	</target>
 	
+	<target name="jar" depends="compile">
+		<jar jarfile="build/nanomaps-server.jar" basedir="build/classes"/>
+	</target>
+	
 	<target name="clean">
 		<delete dir="build"/>
 	</target>

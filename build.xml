@@ -1,10 +1,11 @@
-<project name="nanomaps-server-dist">
-	
+<project name="nanomaps-server-dist" default="instance">
+	<property name="instance.dir" location="instance"/>	
+
 	<!--
 	Prepare development dependencies.  Builds sub-projects and
 	compiles native libraries
 	-->
-	<target name="depend">
+	<target name="depend" unless="depend.skip">
 		<ant dir="sources/common" target="depend" inheritall="false"/>
 	</target>	
 	
@@ -15,4 +16,76 @@
 		<ant dir="sources/common" target="clean" inheritall="false"/>
 	</target>
 	
+	<target name="depend-check">
+		<available file="sources/common/depend/mapnik-jni.jar" property="depend.skip"/>
+	</target>
+	<target name="depend-message" if="depend.skip">
+		<echo>Not rebuilding dependencies.  To force rebuilding dependencies run 'ant depend-clean depend'</echo>
+	</target>
+	<target name="depend-conditional" depends="depend-check,depend,depend-message"/>
+	
+	<!--
+	Build the instance
+	-->
+	<target name="instance" depends="depend-conditional">
+		<!-- Copy libraries -->
+		<mkdir dir="${instance.dir}/lib"/>
+		<copy todir="${instance.dir}/lib">
+			<fileset dir="sources/common/depend"/>
+		</copy>
+		
+		<!-- Compile -->
+		<ant dir="sources/nanomaps-server" target="jar" inheritall="false"/>
+		<copy todir="${instance.dir}/lib" file="sources/nanomaps-server/build/nanomaps-server.jar"/>
+		
+		
+	</target>
+	
+	<!-- Clean local sources -->
+	<target name="clean">
+		<ant dir="sources/nanomaps-server" target="clean" inheritall="false"/>
+		<delete dir="${instance.dir}/lib"/>
+		<echo>Not cleaning dependencies.  To clean dependencies run 'ant depend-clean'</echo>
+	</target>
+	
+	<target name="report-ulimit">
+		<exec executable="sh" outputproperty="report.ulimit" osfamily="unix">
+			<arg value="-c"/>
+			<arg value="ulimit -n"/>
+		</exec>
+		<property name="report.ulimit" value="unknown"/>
+		<echo>I'd like to take this chance to point out what your limit</echo>
+		<echo>on open file descriptors is.</echo>
+		<echo></echo>
+		<echo>  File descriptor limit=${report.ulimit}</echo>
+		<echo></echo>
+		<echo>You can take this information for what its worth but be aware that</echo>
+		<echo>this is a non-blocking http server that caches mapnik map instances.</echo>
+		<echo>Depending on the complexity of your maps, this can easily be hundreds</echo>
+		<echo>of file descriptors per worker thread (default to the number of cpus).</echo>
+		<echo>In addition, each http connection, persistent or otherwise, uses one.</echo>
+		<echo>You may want to increase this to an astronomical value.  Just sayin.</echo>
+	</target>
+	
+	<!-- Run -->
+	<target name="run" depends="instance,report-ulimit">
+		<mkdir dir="${instance.dir}/logs"/>
+		<java classname="net.rcode.nanomaps.server.ServerMain" 
+			fork="true"
+			dir="${instance.dir}"
+			>
+			<sysproperty key="log4j.configuration" value="file:etc/log4j-console.properties"/>
+			<sysproperty key="java.library.path" value="lib"/>
+			<arg value="etc/server-defaults.properties"/>
+			<arg value="etc/server-local.properties"/>
+			
+			<classpath>
+				<fileset dir="${instance.dir}/lib">
+					<include name="*.jar"/>
+				</fileset>
+			</classpath>
+		</java>
+	</target>
 </project>
+
+
