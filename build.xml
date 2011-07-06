@@ -1,0 +1,18 @@
+<project name="nanomaps-server-dist">
+	
+	<!--
+	Prepare development dependencies.  Builds sub-projects and
+	compiles native libraries
+	-->
+	<target name="depend">
+		<ant dir="sources/common" target="depend" inheritall="false"/>
+	</target>	
+	
+	<!--
+	Clean dependencies.
+	-->
+	<target name="depend-clean">
+		<ant dir="sources/common" target="clean" inheritall="false"/>
+	</target>
+	
+</project>

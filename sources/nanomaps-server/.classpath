@@ -3,22 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/assetserver-embed.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/commons-codec-1.5.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/commons-lang-2.6.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/commons-lang3-3.0-beta.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/freemarker-2.3.18.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/gson-1.6.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/js-1.7R2.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/jul-to-slf4j-1.6.1.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/log4j-1.2.16.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/mapnik-jni.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/netty-3.2.4.Final.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/rccoreutil.jar" sourcepath="/rccoreutil/src"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/slf4j-api-1.6.1.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/slf4j-log4j12-1.6.1.jar"/>
-	<classpathentry kind="lib" path="/mapniktools-common/depend/sqlite4java-custom.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="/mapniktools-common/lib/dom4j-1.6.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

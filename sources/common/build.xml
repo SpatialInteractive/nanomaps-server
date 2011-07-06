@@ -1,9 +1,10 @@
 <project name="common" default="depend">
 	<!-- Build dependencies -->
 	<property name="depend.dir" location="depend"/>
-	<property name="mapnik-jni.dir" location="../external/mapnik-jni"/>
-	<property name="sqlite4java.dir" location="../external/sqlite4java-custom"/>
-	<property name="rccoreutil.dir" location="../external/rccoreutil"/>
+	<property name="external.dir" location="../../external"/>
+	<property name="mapnik-jni.dir" location="${external.dir}/mapnik-jni"/>
+	<property name="sqlite4java.dir" location="${external.dir}/sqlite4java-custom"/>
+	<property name="rccoreutil.dir" location="${external.dir}/rccoreutil"/>
 	
 	<target name="clean" depends="clean-depend">
 		<delete dir="${depend.dir}"/>
