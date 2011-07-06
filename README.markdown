@@ -100,4 +100,103 @@ but if you drop other *.mapnik.xml files into the repository directory (and
 restart), they should show up here.  The ui is [Nanomaps JS](https://github.com/stellaeof/nanomaps)
 and should work on modern desktop browsers and mobile.
 
+Screenshots
+-----------
+
+### Default Installation
+
+![First Screen](https://github.com/stellaeof/nanomaps-server/raw/master/doc/screenshots/nanomaps-server-example.png)
+
+### Zoomed In on a MapQuest OSM Map
+
+This is a proof of life of the server rendering a non-trivial OSM map.
+The source is actually a highly optimized fork of the (MapQuest OSM Style)[https://github.com/MapQuest/MapQuest-Mapnik-Style]
+rendered off of SQLite databases that have been optimized with another tool I've been working on called
+[Mapnik Distiller](https://github.com/stellaeof/mapnik-distiller).  
+It applies a number of optimizations to the OSM database with the
+end result being that functional, relatively high performance maps can be rendered on modest hardware.
+I've been running it on a 6 year old Linux desktop with 2GB of RAM with pretty decent
+rendering performance at all zoom levels (~250ms/tile depending on zoom level).
+
+![MapQuest OSM](https://github.com/stellaeof/nanomaps-server/raw/master/doc/screenshots/nanomaps-server-zoomed-in.png)
+
+Configuration
+=============
+Server configuration is currently hard-coded or auto detected.  I'll be adding bits to make it all configurable shortly.
+The primary moving part is the files that you put in the instance/repository directory.
+
+The server will pick up files with the following name patterns and publish them:
+
+* {mapname}.mapnik.xml
+* {mapname}.select.js
+
+In addition, some properties control the way that the maps are exposed.  These will be read from {mapname}.properties
+if it exists.  Currently, the following properties are supported:
+
+* announce: If "false" then the map will not be listed in the server's table of contents
+* attribution: Text attribution listed with the map metadata
+* attributionHtml: Html attribution listed with the map metadata
+
+Everyone here should already know what goes into a *.mapnik.xml file, so I won't go into that except to make one note:
+If you use a symlink, then the server resolves the link and passes the resolved path to mapnik for loading.  The result is that
+if your symlinked map file references relative resources, those resources will be resolved relative to the actual endpoint of
+the link, not the link itself.
+
+Also, the server makes aggressive use of etags for http caching.  The etag is calculated off of the "completely loaded" contents
+of the repository file (ie. the mapnik.xml or the select.js file).  Therefore, if the file contents haven't changed, all generated
+maps will have the same etag.  Note that entities *are* resolved in mapnik.xml files prior to calculating the etag.
+
+JavaScript Map Select Files
+---------------------------
+The server is organized to support a number of pseudo map types that are identified by file type in the repository directory.
+Eventually, I expect to have proxy types and other constructions useful for stitching multiple maps together.  Right now, there is
+just the .select.js file which is a little chunk of JavaScript that takes a map request and decides what underlying map should
+be rendered.  I needed this straight away because my OSM maps are broken into four different detail levels and something needs
+to pick the right one to render for each request.
+
+Here is an example:
+
+	function select(request) {
+		var level=request.level, suffix;
+		if (level>=15) suffix="dl1";
+		else if (level>=11) suffix="dl2";
+		else if (level>=7) suffix="dl3";
+		else if (level>=1) suffix="dl4";
+		
+		if (suffix) {
+			logger.info("Select detail level " + suffix + " for level " + level);
+			return "mqstreet_" + suffix;
+		} else {
+			return null;
+		}
+	}
+
+Currently, there are two global objects available:
+
+* repository: The object that manages the repository.  Can be used to lookup additional things.
+* logger: A SLF4J logger
+	
+The js file should define a function "select" that takes a request parameter and returns something that can be turned
+into a map such as:
+
+* A map name.  The invoker will recursively resolve any returned string against the repository to produce a map.  Cyclic recursion
+is detected and stopped.
+* A MapLocator object.  You can get one of these from repository.lookupMap(name).  Or conceivably, you could instantiate some
+special kind of MapLocator and give it back
+* A MapResource object.  This is the type of object that actually gets rendered.  There is presently not a straight-forward way
+to create one of these from the JavaScript side.
+
+The request object given to the select() method has the following properties:
+
+* tileWidth
+* tileHeight
+* mapName
+* level
+* x
+* y
+* cost
+* time
+
+It is highly likely that I will refactor this class before too much longer, so I'm not going to document these properties
+further.
 
