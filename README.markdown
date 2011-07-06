@@ -88,4 +88,16 @@ mapnik and its input plugins, you should be fine.
 but if something goes wrong, it's going to be a little difficult to figure
 out what happened)
 
+### Load it up in your browser
+
+	http://localhost:7666/
+	
+You should get a web page with the colorized population map as presented
+[here](http://trac.mapnik.org/wiki/XMLGettingStarted).  At the top left is
+a drop down of maps that were found in the instance/repository directory
+when the server started.  The default install only has the one "world_sample"
+but if you drop other *.mapnik.xml files into the repository directory (and
+restart), they should show up here.  The ui is [Nanomaps JS](https://github.com/stellaeof/nanomaps)
+and should work on modern desktop browsers and mobile.
+
 
