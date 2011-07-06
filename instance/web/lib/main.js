@@ -5,6 +5,10 @@ var nanomaps=global.nanomaps;
 /** Locals **/
 var map,
 	tapIw,
+	toc,
+	activeTocName='world_sample',
+	activeTocEntry,
+	activeTocLayers,
 	mapShowing,
 	geoLocationWatchId,
 	locationMarker=new nanomaps.ImgMarker({
@@ -18,33 +22,6 @@ var map,
 			unit: 'm'
 		});
 
-var TILE_LAYERS={
-	street: new nanomaps.TileLayer({
-			tileSrc: "/map/world_sample/${level}/${tileX}/${tileY}"
-		}),
-	street1: new nanomaps.TileLayer({
-			tileSrc: "http://otile${modulo:1,2,3}.mqcdn.com/tiles/1.0.0/osm/${level}/${tileX}/${tileY}.png"
-		}),
-	sat: new nanomaps.TileLayer({
-			tileSrc: "http://oatile${modulo:1,2,3}.mqcdn.com/naip/${level}/${tileX}/${tileY}.jpg"
-		}),
-	hyb: new nanomaps.TileLayer({
-			tileSrc: "http://otile${modulo:1,2,3}.mqcdn.com/tiles/1.0.0/hyb/${level}/${tileX}/${tileY}.png"
-		})
-};
-	
-function setTileLayer(type) {
-	if (type==='street') {
-		map.detach(TILE_LAYERS.sat);
-		map.detach(TILE_LAYERS.hyb);
-		map.attach(TILE_LAYERS.street);
-	} else if (type==='aerial') {
-		map.detach(TILE_LAYERS.street);
-		map.attach(TILE_LAYERS.sat);
-		map.attach(TILE_LAYERS.hyb);
-	}
-}
-	
 /** Global scope **/
 function initialize() {
 	var mapElt=$('#map').get(0);
@@ -79,28 +56,15 @@ function initialize() {
 		}
 	});
 	
-	//showDebugMessage('Loading map');
-	/** Global exports **/
-	//global.map=map;
+    navigator.geolocation.getCurrentPosition(
+        handleGeoLocation,
+        handleGeoLocationError,
+        {maximumAge:Infinity, timeout: 2000}
+    );
 	
-	/** Don't attach tile layer yet - we do that after we acquire an initial location **/
-	try {
-		navigator.geolocation.getCurrentPosition(
-			handleGeoLocation,
-			handleGeoLocationError,
-			{maximumAge:Infinity, timeout: 2000}
-		);
-		//throw "No geoloc";
-		// Set fallback timeout to get the map showing on timeout
-		setTimeout(function() {
-			showMap();
-		}, 2500);
-	} catch (e) {
-		showMap();
-	}
-	
+    loadToc();
 	setupControls();
-	setupQuery();
+	showMap(null, 2);
 }
 
 function setupControls() {
@@ -114,59 +78,14 @@ function setupControls() {
 		map.zoomOut();
 		map.commit(true);
 	});
-	
-	$('#btnStreet').click(function() {
-		setTileLayer('street');
+	$('#btnRefresh').click(function() {
+	   loadToc(); 
 	});
-	$('#btnAerial').click(function() {
-		setTileLayer('aerial');
+	$('#slMap').change(function() {
+	    var name=$(this).val();
+	    focusTocEntry(name);
 	});
-}
-
-function setupQuery() {
-	$('#btnQuery').click(function() {
-		var q=$('#txtQuery').val();
-		runQuery(q);
-	});
-}
-
-function runQuery(q) {
-	var params={
-		format: 'json',
-		q: q,
-		bounded: 0,
-		}, 
-		url='http://open.mapquestapi.com/nominatim/v1/search',
-		k, v, first=true;
-	
-	$.ajax({
-		url: url,
-		dataType: 'json',
-		jsonp: 'json_callback',
-		data: params,
-		success: function(result) {
-			if (result.length==0) {
-				alert('No results found.');
-				return;
-			}
-			var place=result[0],
-				lat=Number(place.lat),
-				lng=Number(place.lon);
-			
-			// Place marker
-			placeMarker.setLocation({lat:lat,lng:lng});
-			map.attach(placeMarker);
-			
-			// Move map
-			map.begin();
-			map.setLocation({lat: lat, lng: lng});
-			map.setZoom(10);
-			map.commit({
-				//duration: 2.0
-			});
-		}
-	});
-}
+}  
 
 /**
  * Called on browser window resize.  Just have the map reset its
@@ -174,6 +93,70 @@ function runQuery(q) {
  */
 function resize() {
 	map.setSize();
+}
+
+function loadToc() {
+    $.ajax({
+       url: '/map/',
+       dataType: 'json',
+       success: handleTocResults
+    });
+}    
+
+function handleTocResults(data) {
+    var maps=data.maps||[], i, entry, options='';
+    toc=maps;
+    
+    $('#slMap option').remove();
+    for (i=0; i<toc.length; i++) {
+        entry=toc[i];
+        options+='<option';
+        if (entry.name===activeTocName)
+            options+=' selected';
+        options+='>' + entry.name + '</option>';
+    }
+    $('#slMap').html(options);
+    
+    focusTocEntry(activeTocName);
+}
+
+function focusTocEntry(name) {
+    var i, entry, props, name, layer, copyright;
+    
+    activeTocName=name;
+    
+    // Deactivate layers
+    if (activeTocLayers) {
+        for (i=0; i<activeTocLayers.length; i++) {
+            map.detach(activeTocLayers[i]);
+        }
+        activeTocLayers=null;
+    }
+    
+    $('#mapcopy').html('');
+    
+    // Find the active entry
+    for (i=0; i<toc.length; i++) {
+        entry=toc[i];
+        name=entry.name;
+        if (name===activeTocName) {
+            activeTocEntry=entry;
+        }
+    }
+    
+    // Activate it
+    activeTocLayers=[];
+    if (activeTocEntry.tileSpec) {
+        layer=new nanomaps.TileLayer({
+           tileSrc: activeTocEntry.tileSpec 
+        });
+        activeTocLayers.push(layer);
+        map.attach(layer);
+        
+        props=activeTocEntry.properties||{};
+        copyright=props.attributionHtml || props.attribution;
+        if (copyright) $('#mapcopy').html(copyright);
+    }
 }
 
 /**
@@ -184,13 +167,12 @@ function showMap(initialPosition, initialLevel) {
 	if (mapShowing) return;
 	if (!initialPosition) initialPosition={
 		// Seattle - my favorite city
-		lat: 47.604317, 
-		lng: -122.329773
+		//lat: 47.604317, 
+		//lng: -122.329773
+		lat:0, lng: 0
 	};
 	if (initialLevel) map.setZoom(initialLevel);
 	map.setLocation(initialPosition);
-	setTileLayer('street');
-	
 	
 	// Show tiles
 	mapShowing=true;

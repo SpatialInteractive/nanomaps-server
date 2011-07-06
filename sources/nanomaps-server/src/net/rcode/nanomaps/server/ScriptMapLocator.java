@@ -30,7 +30,7 @@ import net.rcode.nanomaps.server.util.ScriptPool;
  * @author stella
  *
  */
-public class ScriptMapLocator implements MapLocator, MapRepositoryManaged {
+public class ScriptMapLocator extends AbstractMapLocator implements MapLocator, MapRepositoryManaged {
 	private Logger logger=LoggerFactory.getLogger(ScriptMapLocator.class);
 	
 	private ScriptPool pool;

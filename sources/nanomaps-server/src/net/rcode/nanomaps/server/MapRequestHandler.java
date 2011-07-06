@@ -2,11 +2,13 @@ package net.rcode.nanomaps.server;
 
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.regex.Pattern;
 
 import mapnik.Box2d;
 import mapnik.Image;
 import mapnik.Renderer;
+import net.rcode.core.util.JsonBuilder;
 import net.rcode.core.web.ThreadedRequestHandler;
 import net.rcode.nanomaps.server.projection.TileProjection;
 
@@ -17,6 +19,7 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.jboss.netty.util.CharsetUtil;
 
 /**
  * Handles all requests to a map.
@@ -52,6 +55,13 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 		// Decode the parameters
 		QueryStringDecoder qs=new QueryStringDecoder(request.getUri());
 		String path=qs.getPath();
+		
+		// If it is a request for the root, then we handle it as a TOC
+		// request
+		if ("/".equals(path)) {
+			handleTOCRequest();
+			return;
+		}
 		
 		// Strip leading slash
 		if (path.startsWith("/")) path=path.substring(1);
@@ -128,6 +138,62 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 		renderService.submit(tileRequest, this);
 	}
 	
+	private void handleTOCRequest() {
+		String uriRoot="http://" + request.getHeader(HttpHeaders.Names.HOST) + "/map/";
+		
+		JsonBuilder tocBuilder=new JsonBuilder();
+		
+		tocBuilder.startObject();
+		tocBuilder.key("maps", false);
+		tocBuilder.startArray();
+		
+		for (String mapName: repository.listMaps()) {
+			MapLocator map=repository.lookupMap(mapName);
+			if (map==null) continue;
+			
+			// Name
+			tocBuilder.startObject();
+			tocBuilder.key("name", false);
+			tocBuilder.value(mapName);
+			
+			// Uri
+			String uri=uriRoot + uriEncode(mapName);
+			tocBuilder.key("uri", false);
+			tocBuilder.value(uri);
+			
+			// Tilespec
+			tocBuilder.key("tileSpec", false);
+			tocBuilder.value(uri + "/${level}/${tileX}/${tileY}");
+			
+			// Properties
+			tocBuilder.key("properties", false);
+			tocBuilder.startObject();
+			java.util.Map<String,String> properties=map.getProperties();
+			for (java.util.Map.Entry<String, String> entry: properties.entrySet()) {
+				tocBuilder.key(entry.getKey());
+				tocBuilder.value(entry.getValue());
+			}
+			tocBuilder.endObject();
+			
+			tocBuilder.endObject();
+		}
+		
+		CharSequence json=tocBuilder.getJson();
+		HttpResponse response=new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+		response.addHeader(HttpHeaders.Names.CONTENT_TYPE, "application/json;charset=UTF-8");
+		response.setContent(ChannelBuffers.copiedBuffer(json, CharsetUtil.UTF_8));
+		
+		respond(response);
+	}
+
+	private String uriEncode(String s) {
+		try {
+			return URLEncoder.encode(s, "UTF-8");
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	private void uriDecode(String[] comps) {
 		for (int i=0; i<comps.length; i++) {
 			try {

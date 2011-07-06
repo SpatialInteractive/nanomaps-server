@@ -21,7 +21,7 @@ import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MapnikMapResource implements MapLocator, MapResource, MapRepositoryManaged  {
+public class MapnikMapResource extends AbstractMapLocator implements MapLocator, MapResource, MapRepositoryManaged  {
 	private static final Logger logger=LoggerFactory.getLogger(MapnikMapResource.class);
 	private File repositoryMapFile;
 	private File canonicalMapFile;

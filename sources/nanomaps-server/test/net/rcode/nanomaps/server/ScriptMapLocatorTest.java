@@ -13,7 +13,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class ScriptMapLocatorTest {
-	private static class DummyResource implements MapResource, MapLocator {
+	private static class DummyResource extends AbstractMapLocator implements MapResource, MapLocator {
 		@Override
 		public Map createMap(Object recycleTag) {
 			return null;

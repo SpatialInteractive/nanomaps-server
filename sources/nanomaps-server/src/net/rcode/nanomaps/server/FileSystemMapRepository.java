@@ -1,8 +1,15 @@
 package net.rcode.nanomaps.server;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,6 +70,19 @@ public class FileSystemMapRepository implements MapRepository {
 		}
 		locator=staticMaps.get(name);
 		return locator;
+	}
+	
+	@Override
+	public Collection<String> listMaps() {
+		Map<String,MapLocator> maps;
+		synchronized (this) {
+			maps=managedMaps;
+		}
+		
+		Set<String> ret=new HashSet<String>();
+		ret.addAll(staticMaps.keySet());
+		ret.addAll(maps.keySet());
+		return ret;
 	}
 	
 	/**
@@ -130,6 +150,7 @@ public class FileSystemMapRepository implements MapRepository {
 				String mapName=m.group(1);
 				try {
 					MapnikMapResource mapnikMap=new MapnikMapResource(file);
+					loadCompanionProperties(mapnikMap, file);
 					newContents.put(mapName, mapnikMap);
 					logger.info("Registered new repository map " + mapName);
 				} catch (Throwable t) {
@@ -146,6 +167,7 @@ public class FileSystemMapRepository implements MapRepository {
 				String mapName=m.group(1);
 				try {
 					ScriptMapLocator scriptLoc=new ScriptMapLocator(file);
+					loadCompanionProperties(scriptLoc, file);
 					newContents.put(mapName, scriptLoc);
 					logger.info("Registered new script select map " + mapName);
 				} catch (Throwable t) {
@@ -153,6 +175,33 @@ public class FileSystemMapRepository implements MapRepository {
 				}
 				
 				continue;
+			}
+		}
+	}
+
+	private void loadCompanionProperties(MapLocator loc, File file) throws IOException {
+		String fileName=file.getName();
+		int dotPos=fileName.indexOf('.');
+		if (dotPos<0) return;
+		
+		String rootName=fileName.substring(0, dotPos);
+		File propFile=new File(file.getParentFile(), rootName + ".properties");
+		if (!propFile.exists()) return;
+		
+		Properties props=new Properties();
+		FileInputStream in=new FileInputStream(propFile);
+		try {
+			props.load(in);
+		} finally {
+			in.close();
+		}
+		
+		Map<String,String> mapProps=loc.getProperties();
+		Enumeration<?> nameEnum=props.propertyNames();
+		while (nameEnum.hasMoreElements()) {
+			String name=(String) nameEnum.nextElement();
+			if (!mapProps.containsKey(name)) {
+				mapProps.put(name, props.getProperty(name));
 			}
 		}
 	}

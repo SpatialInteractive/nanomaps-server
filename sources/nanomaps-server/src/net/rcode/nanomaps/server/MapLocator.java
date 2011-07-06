@@ -1,5 +1,7 @@
 package net.rcode.nanomaps.server;
 
+import java.util.Map;
+
 /**
  * MapLocator instances are contained by a MapRepository.  Request handlers
  * get an instance of this and then use it to lookup the physical map
@@ -21,4 +23,10 @@ public interface MapLocator {
 	 * @throws Exception 
 	 */
 	public MapResource resolve(RenderRequest request) throws Exception;
+	
+	/**
+	 * Return meta-data properties associated with the map
+	 * @return map of properties
+	 */
+	public Map<String, String> getProperties();
 }
