@@ -1,1 +1,240 @@
-(function(){var d;function c(a){var b=$("#debugpane");if(!b.get(0)){b=$(document.createElement("div"));b.get(0).id="debugpane";b.appendTo(document.body)}else{b.append("<br>")}b.append(a);if(d){clearTimeout(d)}d=setTimeout(function(){d=null;b.remove()},5000);b.click(function(){b.remove()})}window.showDebugMessage=c;console.log=c})();(function(n){var o=n.nanomaps;var r,l,h,d=new o.ImgMarker({src:"orb_blue.png"}),k=new o.ImgMarker({src:"pin_pink.png"}),c=new o.EllipseMarker({className:"errorHalo",unit:"m"});var i={street:new o.TileLayer({tileSrc:"http://otile${modulo:1,2,3}.mqcdn.com/tiles/1.0.0/osm/${level}/${tileX}/${tileY}.png"}),sat:new o.TileLayer({tileSrc:"http://oatile${modulo:1,2,3}.mqcdn.com/naip/${level}/${tileX}/${tileY}.jpg"}),hyb:new o.TileLayer({tileSrc:"http://otile${modulo:1,2,3}.mqcdn.com/tiles/1.0.0/hyb/${level}/${tileX}/${tileY}.png"})};function a(s){if(s==="street"){r.detach(i.sat);r.detach(i.hyb);r.attach(i.street)}else{if(s==="aerial"){r.detach(i.street);r.attach(i.sat);r.attach(i.hyb)}}}function b(){var s=$("#map").get(0);var v=window.devicePixelRatio||1,u=0;if(v>1.5){u=-0.5}r=new o.MapSurface(s,{zoomBias:u});r.on("motion.longtap",function(w){var x=r.getLocation(w.x,w.y);showDebugMessage("Long tap: "+x.lat()+","+x.lng());w.handled=true});r.on("motion.click",function(w){if(w.count===1){var x=r.getLocation(w.x,w.y);showDebugMessage("Single tap: "+x.lat()+","+x.lng()+", Zoom="+r.getZoom());w.handled=true}});try{navigator.geolocation.getCurrentPosition(m,j,{maximumAge:Infinity,timeout:2000});setTimeout(function(){g()},2500)}catch(t){g()}f();e()}function f(){$("#zoomControl .zoomIn").click(function(){r.begin();r.zoomIn();r.commit(true)});$("#zoomControl .zoomOut").click(function(){r.begin();r.zoomOut();r.commit(true)});$("#btnStreet").click(function(){a("street")});$("#btnAerial").click(function(){a("aerial")})}function e(){$("#btnQuery").click(function(){var s=$("#txtQuery").val();p(s)})}function p(w){var y={format:"json",q:w,bounded:0,},u="http://open.mapquestapi.com/nominatim/v1/search",t,s,x=true;$.ajax({url:u,dataType:"json",jsonp:"json_callback",data:y,success:function(v){if(v.length==0){alert("No results found.");return}var z=v[0],B=Number(z.lat),A=Number(z.lon);k.setLocation({lat:B,lng:A});r.attach(k);r.begin();r.setLocation({lat:B,lng:A});r.setZoom(10);r.commit({})}})}function q(){r.setSize()}function g(s,t){if(l){return}if(!s){s={lat:47.604317,lng:-122.329773}}if(t){r.setZoom(t)}r.setLocation(s);a("street");l=true}function m(s){var t={lat:s.coords.latitude,lng:s.coords.longitude};g(t,13);c.settings.latitude=t.lat;c.settings.longitude=t.lng;c.settings.radius=s.coords.accuracy;r.update(c);d.setLocation(t);r.update(d);if(!h){h=navigator.geolocation.watchPosition(m,j)}}function j(s){console.log("Could not get location: "+s.message);g()}$(window).load(b);$(window).resize(q)})(window);
+(function(global) {
+/** Imports **/
+var nanomaps=global.nanomaps;
+
+/** Locals **/
+var map,
+	tapIw,
+	mapShowing,
+	geoLocationWatchId,
+	locationMarker=new nanomaps.ImgMarker({
+			src: 'orb_blue.png'
+		}),
+	placeMarker=new nanomaps.ImgMarker({
+			src: 'pin_pink.png'
+		}),
+	locationUncertaintyMarker=new nanomaps.EllipseMarker({
+			className: 'errorHalo',
+			unit: 'm'
+		});
+
+var TILE_LAYERS={
+	street: new nanomaps.TileLayer({
+			tileSrc: "/map/world_sample/${level}/${tileX}/${tileY}"
+		}),
+	street1: new nanomaps.TileLayer({
+			tileSrc: "http://otile${modulo:1,2,3}.mqcdn.com/tiles/1.0.0/osm/${level}/${tileX}/${tileY}.png"
+		}),
+	sat: new nanomaps.TileLayer({
+			tileSrc: "http://oatile${modulo:1,2,3}.mqcdn.com/naip/${level}/${tileX}/${tileY}.jpg"
+		}),
+	hyb: new nanomaps.TileLayer({
+			tileSrc: "http://otile${modulo:1,2,3}.mqcdn.com/tiles/1.0.0/hyb/${level}/${tileX}/${tileY}.png"
+		})
+};
+	
+function setTileLayer(type) {
+	if (type==='street') {
+		map.detach(TILE_LAYERS.sat);
+		map.detach(TILE_LAYERS.hyb);
+		map.attach(TILE_LAYERS.street);
+	} else if (type==='aerial') {
+		map.detach(TILE_LAYERS.street);
+		map.attach(TILE_LAYERS.sat);
+		map.attach(TILE_LAYERS.hyb);
+	}
+}
+	
+/** Global scope **/
+function initialize() {
+	var mapElt=$('#map').get(0);
+	
+	// Detect hi resolution display and bias zoom levels
+	var pixelRatio=window.devicePixelRatio||1,
+		zoomBias=0.0;
+	if (pixelRatio>1.5) zoomBias=-0.50;
+	
+	map=new nanomaps.MapSurface(mapElt, {
+		zoomBias: zoomBias
+	});
+	map.on('motion.longtap', function(motionEvent) {
+		var latLng=map.getLocation(motionEvent.x, motionEvent.y);
+		showDebugMessage('Long tap: ' + latLng.lat() + ',' + latLng.lng());
+		motionEvent.handled=true;
+	});
+	map.on('motion.click', function(motionEvent) {
+		if (motionEvent.count===1) {
+			var latLng=map.getLocation(motionEvent.x, motionEvent.y);
+			//showDebugMessage('Single tap: ' + latLng.lat() + ',' + latLng.lng() + ', Zoom=' + map.getZoom());
+			motionEvent.handled=true;
+
+			if (tapIw) map.detach(tapIw);
+			tapIw=new nanomaps.InfoWindow();
+			$(tapIw.getContent()).text('Location: (' + latLng.lat() + ', ' + latLng.lng() + ')');
+			$(tapIw.element).click(function() {
+				if (tapIw) map.detach(tapIw);
+			});
+			tapIw.setLocation(latLng);
+			map.attach(tapIw);
+		}
+	});
+	
+	//showDebugMessage('Loading map');
+	/** Global exports **/
+	//global.map=map;
+	
+	/** Don't attach tile layer yet - we do that after we acquire an initial location **/
+	try {
+		navigator.geolocation.getCurrentPosition(
+			handleGeoLocation,
+			handleGeoLocationError,
+			{maximumAge:Infinity, timeout: 2000}
+		);
+		//throw "No geoloc";
+		// Set fallback timeout to get the map showing on timeout
+		setTimeout(function() {
+			showMap();
+		}, 2500);
+	} catch (e) {
+		showMap();
+	}
+	
+	setupControls();
+	setupQuery();
+}
+
+function setupControls() {
+	$('#zoomControl .zoomIn').click(function() {
+		map.begin();
+		map.zoomIn();
+		map.commit(true);
+	});
+	$('#zoomControl .zoomOut').click(function() {
+		map.begin();
+		map.zoomOut();
+		map.commit(true);
+	});
+	
+	$('#btnStreet').click(function() {
+		setTileLayer('street');
+	});
+	$('#btnAerial').click(function() {
+		setTileLayer('aerial');
+	});
+}
+
+function setupQuery() {
+	$('#btnQuery').click(function() {
+		var q=$('#txtQuery').val();
+		runQuery(q);
+	});
+}
+
+function runQuery(q) {
+	var params={
+		format: 'json',
+		q: q,
+		bounded: 0,
+		}, 
+		url='http://open.mapquestapi.com/nominatim/v1/search',
+		k, v, first=true;
+	
+	$.ajax({
+		url: url,
+		dataType: 'json',
+		jsonp: 'json_callback',
+		data: params,
+		success: function(result) {
+			if (result.length==0) {
+				alert('No results found.');
+				return;
+			}
+			var place=result[0],
+				lat=Number(place.lat),
+				lng=Number(place.lon);
+			
+			// Place marker
+			placeMarker.setLocation({lat:lat,lng:lng});
+			map.attach(placeMarker);
+			
+			// Move map
+			map.begin();
+			map.setLocation({lat: lat, lng: lng});
+			map.setZoom(10);
+			map.commit({
+				//duration: 2.0
+			});
+		}
+	});
+}
+
+/**
+ * Called on browser window resize.  Just have the map reset its
+ * natural size
+ */
+function resize() {
+	map.setSize();
+}
+
+/**
+ * Show an initial location on the map if the map is not already
+ * showing.
+ */
+function showMap(initialPosition, initialLevel) {
+	if (mapShowing) return;
+	if (!initialPosition) initialPosition={
+		// Seattle - my favorite city
+		lat: 47.604317, 
+		lng: -122.329773
+	};
+	if (initialLevel) map.setZoom(initialLevel);
+	map.setLocation(initialPosition);
+	setTileLayer('street');
+	
+	
+	// Show tiles
+	mapShowing=true;
+}
+
+function handleGeoLocation(position) {
+	var latLng={lat: position.coords.latitude, lng: position.coords.longitude };
+	showMap(latLng, 3);
+
+	// Make sure halo is below the marker
+	locationUncertaintyMarker.settings.latitude=latLng.lat;
+	locationUncertaintyMarker.settings.longitude=latLng.lng;
+	locationUncertaintyMarker.settings.radius=position.coords.accuracy;
+	map.update(locationUncertaintyMarker);
+	
+	locationMarker.setLocation(latLng);
+	map.update(locationMarker);
+	
+	$(locationMarker.element).click(function() {
+		if (tapIw) map.detach(tapIw);
+		tapIw=new nanomaps.InfoWindow();
+		$(tapIw.getContent()).text('My Location');
+		tapIw.setLocation(latLng, {
+			x: 0,
+			y: locationMarker.element.clientHeight/2
+		});
+		$(tapIw.element).click(function() {
+			if (tapIw) map.detach(tapIw);
+		});
+		map.attach(tapIw);
+	});
+	
+	if (!geoLocationWatchId) {
+		geoLocationWatchId=navigator.geolocation.watchPosition(handleGeoLocation, handleGeoLocationError);
+	}
+}
+
+function handleGeoLocationError(error) {
+	console.log('Could not get location: ' + error.message);
+	showMap();
+}
+
+
+$(window).load(initialize);
+$(window).resize(resize);
+})(window);
+

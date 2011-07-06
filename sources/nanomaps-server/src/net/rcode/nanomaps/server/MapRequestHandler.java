@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 import mapnik.Box2d;
 import mapnik.Image;
 import mapnik.Renderer;
-import net.rcode.core.httpserver.HttpServer;
 import net.rcode.core.web.ThreadedRequestHandler;
 import net.rcode.nanomaps.server.projection.TileProjection;
 
@@ -142,6 +141,8 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 	@Override
 	public void doRender(RenderRequest rr) throws Exception {
 		mapnik.Map m=resource.createMap(MapRequestHandler.class);
+		
+		m.setSrs(tileRequest.tileProjection.getSrs());
 		m.resize(tileRequest.tileWidth, tileRequest.tileHeight);
 		m.zoomToBox(tileRequest.bounds);
 		m.setBufferSize(128);
