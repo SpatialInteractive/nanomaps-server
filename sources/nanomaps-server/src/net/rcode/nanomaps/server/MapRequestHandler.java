@@ -149,7 +149,7 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 		
 		for (String mapName: repository.listMaps()) {
 			MapLocator map=repository.lookupMap(mapName);
-			if (map==null) continue;
+			if (map==null || !isAnnounced(map)) continue;
 			
 			// Name
 			tocBuilder.startObject();
@@ -184,6 +184,12 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 		response.setContent(ChannelBuffers.copiedBuffer(json, CharsetUtil.UTF_8));
 		
 		respond(response);
+	}
+
+	private boolean isAnnounced(MapLocator map) {
+		String announced=map.getProperties().get("announced");
+		if (announced!=null && "false".equals(announced)) return false;
+		return true;
 	}
 
 	private String uriEncode(String s) {
