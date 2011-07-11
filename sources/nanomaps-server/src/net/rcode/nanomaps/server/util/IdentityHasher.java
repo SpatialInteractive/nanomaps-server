@@ -14,7 +14,7 @@ import org.jboss.netty.util.CharsetUtil;
  *
  */
 public class IdentityHasher {
-	private static final String SEED="1:";
+	private static final String SEED=System.currentTimeMillis() + ":";
 	private MessageDigest digest;
 	
 	public IdentityHasher() {

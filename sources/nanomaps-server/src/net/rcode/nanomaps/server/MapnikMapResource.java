@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import mapnik.MapDefinition;
 import net.rcode.nanomaps.server.util.IOUtil;
 import net.rcode.nanomaps.server.util.IdentityHasher;
 
@@ -33,7 +34,7 @@ public class MapnikMapResource extends AbstractMapLocator implements MapLocator,
 	/**
 	 * Pool of cached maps available for reuse, indexed by tag
 	 */
-	private Map<Object, Set<mapnik.Map>> cachedMapBuckets=new HashMap<Object, Set<mapnik.Map>>();
+	private Map<Object, Set<MapDefinition>> cachedMapBuckets=new HashMap<Object, Set<MapDefinition>>();
 	
 	public MapnikMapResource(File repositoryMapFile) throws IOException {
 		this.repositoryMapFile=repositoryMapFile;
@@ -74,8 +75,8 @@ public class MapnikMapResource extends AbstractMapLocator implements MapLocator,
 		return identityTag;
 	}
 	
-	private mapnik.Map newMap() {
-		mapnik.Map loadMap=new mapnik.Map();
+	private MapDefinition newMap() {
+		MapDefinition loadMap=new MapDefinition();
 		logger.info("Loading map from " + canonicalMapFile);
 		loadMap.loadMapString(mapFileContents, false, canonicalMapFile.toString());
 		return loadMap;
@@ -108,13 +109,13 @@ public class MapnikMapResource extends AbstractMapLocator implements MapLocator,
 	 * Create a new map or return a recycled one
 	 * @return map
 	 */
-	public mapnik.Map createMap(Object recycleTag) {
+	public MapDefinition createMap(Object recycleTag) {
 		if (recycleTag!=null) {
 			synchronized (cachedMapBuckets) {
-				Set<mapnik.Map> bucket=cachedMapBuckets.get(recycleTag);
+				Set<MapDefinition> bucket=cachedMapBuckets.get(recycleTag);
 				if (bucket!=null && !bucket.isEmpty()) {
-					Iterator<mapnik.Map> iter=bucket.iterator();
-					mapnik.Map ret=iter.next();
+					Iterator<MapDefinition> iter=bucket.iterator();
+					MapDefinition ret=iter.next();
 					iter.remove();
 					return ret;
 				}
@@ -125,11 +126,11 @@ public class MapnikMapResource extends AbstractMapLocator implements MapLocator,
 		return newMap();
 	}
 	
-	public void recycleMap(Object recycleTag, mapnik.Map m) {
+	public void recycleMap(Object recycleTag, MapDefinition m) {
 		synchronized (cachedMapBuckets) {
-			Set<mapnik.Map> bucket=cachedMapBuckets.get(recycleTag);
+			Set<MapDefinition> bucket=cachedMapBuckets.get(recycleTag);
 			if (bucket==null) {
-				bucket=new HashSet<mapnik.Map>();
+				bucket=new HashSet<MapDefinition>();
 				cachedMapBuckets.put(recycleTag, bucket);
 			}
 			bucket.add(m);

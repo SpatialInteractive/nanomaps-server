@@ -1,5 +1,7 @@
 package net.rcode.nanomaps.server;
 
+import mapnik.MapDefinition;
+
 /**
  * Abstract class for published maps.
  * @author stella
@@ -21,12 +23,12 @@ public interface MapResource {
 	 * Create a new map or return a recycled one
 	 * @return map
 	 */
-	public abstract mapnik.Map createMap(Object recycleTag);
+	public abstract MapDefinition createMap(Object recycleTag);
 
 	/**
 	 * Recycle a map instance
 	 * @param m
 	 */
-	public abstract void recycleMap(Object recycleTag, mapnik.Map m);
+	public abstract void recycleMap(Object recycleTag, MapDefinition m);
 
 }

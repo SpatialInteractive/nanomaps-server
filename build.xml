@@ -67,7 +67,7 @@
 	
 	<!-- Run -->
 	<target name="run" depends="instance,report-ulimit">
-		<property name="run.options" value=""/>
+		<property name="run.options" value="-Xmx128m"/>
 		<mkdir dir="${instance.dir}/logs"/>
 		<java classname="net.rcode.nanomaps.server.ServerMain" 
 			fork="true"

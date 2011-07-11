@@ -1,21 +1,17 @@
 package net.rcode.nanomaps.server;
 
+import static org.junit.Assert.assertSame;
+
 import java.io.File;
 
-import mapnik.Map;
-import net.rcode.nanomaps.server.FileSystemMapRepository;
-import net.rcode.nanomaps.server.MapLocator;
-import net.rcode.nanomaps.server.MapResource;
-import net.rcode.nanomaps.server.RenderRequest;
-import net.rcode.nanomaps.server.ScriptMapLocator;
+import mapnik.MapDefinition;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 public class ScriptMapLocatorTest {
 	private static class DummyResource extends AbstractMapLocator implements MapResource, MapLocator {
 		@Override
-		public Map createMap(Object recycleTag) {
+		public MapDefinition createMap(Object recycleTag) {
 			return null;
 		}
 
@@ -25,7 +21,7 @@ public class ScriptMapLocatorTest {
 		}
 
 		@Override
-		public void recycleMap(Object recycleTag, Map m) {
+		public void recycleMap(Object recycleTag, MapDefinition m) {
 		}
 
 		@Override

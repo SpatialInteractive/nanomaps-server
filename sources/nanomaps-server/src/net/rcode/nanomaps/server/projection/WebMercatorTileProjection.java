@@ -23,6 +23,11 @@ public class WebMercatorTileProjection extends TileProjection {
 	}
 	
 	@Override
+	public void dispose() {
+		projection.dispose();
+	}
+	
+	@Override
 	public Projection getProjection() {
 		return projection;
 	}

@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import net.rcode.assetserver.core.MimeMapping;
 import net.rcode.core.httpserver.HttpServer;
 import net.rcode.core.httpserver.SimpleRequestDispatcher;
 import net.rcode.core.io.NamedThreadFactory;
@@ -76,6 +75,9 @@ public class ServerMain {
 		File docRoot=new File("web");
 		FilesRequestHandler files=new FilesRequestHandler(null, null, docRoot);
 		mainDispatcher.pathPrefix("/static", true, files);
+		
+		// Admin
+		mainDispatcher.path("/_admin/stats", new AdminStatsRequestHandler());
 		
 		// Listen
 		logger.info("Starting server on port " + serverPort);

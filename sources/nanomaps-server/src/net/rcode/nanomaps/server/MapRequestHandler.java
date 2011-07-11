@@ -3,10 +3,12 @@ package net.rcode.nanomaps.server;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import mapnik.Box2d;
 import mapnik.Image;
+import mapnik.MapDefinition;
 import mapnik.Renderer;
 import net.rcode.core.util.JsonBuilder;
 import net.rcode.core.web.ThreadedRequestHandler;
@@ -33,6 +35,7 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 	int cacheMaxAge=5;
 	
 	// -- Request state
+	QueryStringDecoder qs;
 	MapLocator locator;
 	MapResource resource;
 	TileRequest tileRequest;
@@ -43,6 +46,7 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 		// Map State
 		public TileProjection tileProjection;
 		public Box2d bounds;
+		public double pixelRatio=1.0;
 	}
 	
 	public MapRequestHandler(MapRepository repository, RenderService renderService) {
@@ -50,10 +54,16 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 		this.renderService=renderService;
 	}
 	
+	protected String getParameter(String key) {
+		List<String> params=qs.getParameters().get(key);
+		if (params==null || params.isEmpty()) return null;
+		return params.get(0);
+	}
+	
 	@Override
 	protected void handleInThread() throws Exception {
 		// Decode the parameters
-		QueryStringDecoder qs=new QueryStringDecoder(request.getUri());
+		qs=new QueryStringDecoder(request.getUri());
 		String path=qs.getPath();
 		
 		// If it is a request for the root, then we handle it as a TOC
@@ -85,6 +95,15 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 				if (comps.length>3) {
 					tileRequest.y=Integer.parseInt(comps[3]);
 				}
+			} catch (NumberFormatException e) {
+				tileRequest.error=true;
+			}
+		}
+		
+		String renderScaleFactor=getParameter("pixelRatio");
+		if (renderScaleFactor!=null && !renderScaleFactor.isEmpty()) {
+			try {
+				tileRequest.pixelRatio=Double.parseDouble(renderScaleFactor);
 			} catch (NumberFormatException e) {
 				tileRequest.error=true;
 			}
@@ -163,7 +182,7 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 			
 			// Tilespec
 			tocBuilder.key("tileSpec", false);
-			tocBuilder.value(uri + "/${level}/${tileX}/${tileY}");
+			tocBuilder.value(uri + "/${level}/${tileX}/${tileY}?pixelRatio=${pixelRatio}");
 			
 			// Properties
 			tocBuilder.key("properties", false);
@@ -212,16 +231,21 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 
 	@Override
 	public void doRender(RenderRequest rr) throws Exception {
-		mapnik.Map m=resource.createMap(MapRequestHandler.class);
+		MapDefinition m=resource.createMap(MapRequestHandler.class);
+		int bufferSize=128;
 		
 		m.setSrs(tileRequest.tileProjection.getSrs());
 		m.resize(tileRequest.tileWidth, tileRequest.tileHeight);
 		m.zoomToBox(tileRequest.bounds);
-		m.setBufferSize(128);
+		m.setBufferSize((int)(bufferSize * tileRequest.pixelRatio));
 		
 		logger.info("Rendering tile with bounds " + tileRequest.bounds);
-		Image image=new Image(tileRequest.tileWidth, tileRequest.tileHeight);
-		Renderer.renderAgg(m, image);
+		Image image;
+		
+		image=new Image(tileRequest.tileWidth, 
+				tileRequest.tileHeight);
+		
+		Renderer.renderAgg(m, image, tileRequest.pixelRatio, 0, 0);
 		
 		byte[] contents=image.saveToMemory("png");
 		image.dispose();
@@ -250,4 +274,18 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 		respondError(HttpResponseStatus.REQUEST_TIMEOUT, "Request cancelled");
 	}
 
+	/**
+	 * Force cleans up resources at the end of the response cycle
+	 */
+	@Override
+	public void respond(HttpResponse response) {
+		super.respond(response);
+		
+		if (tileRequest!=null) {
+			if (tileRequest.tileProjection!=null) {
+				tileRequest.tileProjection.dispose();
+			}
+		}
+	}
+	
 }

@@ -6,7 +6,7 @@ var nanomaps=global.nanomaps;
 var map,
 	tapIw,
 	toc,
-	activeTocName='world_sample',
+	activeTocName='mqstreet',
 	activeTocEntry,
 	activeTocLayers,
 	mapShowing,
@@ -27,12 +27,8 @@ function initialize() {
 	var mapElt=$('#map').get(0);
 	
 	// Detect hi resolution display and bias zoom levels
-	var pixelRatio=window.devicePixelRatio||1,
-		zoomBias=0.0;
-	if (pixelRatio>1.5) zoomBias=-0.50;
-	
 	map=new nanomaps.MapSurface(mapElt, {
-		zoomBias: zoomBias
+		//zoomBias: zoomBias
 	});
 	map.on('motion.longtap', function(motionEvent) {
 		var latLng=map.getLocation(motionEvent.x, motionEvent.y);
@@ -64,7 +60,7 @@ function initialize() {
 	
     loadToc();
 	setupControls();
-	showMap(null, 2);
+	//showMap(null, 2);
 }
 
 function setupControls() {
@@ -121,7 +117,7 @@ function handleTocResults(data) {
 }
 
 function focusTocEntry(name) {
-    var i, entry, props, name, layer, copyright;
+    var i, entry, props, name, layer, copyright, src;
     
     activeTocName=name;
     
@@ -147,8 +143,10 @@ function focusTocEntry(name) {
     // Activate it
     activeTocLayers=[];
     if (activeTocEntry.tileSpec) {
+    	src=activeTocEntry.tileSpec;
         layer=new nanomaps.TileLayer({
-           tileSrc: activeTocEntry.tileSpec 
+           tileSrc: src,
+           autoPixelRatio: true
         });
         activeTocLayers.push(layer);
         map.attach(layer);
@@ -180,7 +178,7 @@ function showMap(initialPosition, initialLevel) {
 
 function handleGeoLocation(position) {
 	var latLng={lat: position.coords.latitude, lng: position.coords.longitude };
-	showMap(latLng, 3);
+	showMap(latLng, 15);
 
 	// Make sure halo is below the marker
 	locationUncertaintyMarker.settings.latitude=latLng.lat;

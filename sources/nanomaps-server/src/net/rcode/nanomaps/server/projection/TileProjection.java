@@ -13,6 +13,11 @@ public abstract class TileProjection {
 	}
 	
 	/**
+	 * Dispose of any native resources
+	 */
+	public abstract void dispose();
+	
+	/**
 	 * @return the srs for this projection
 	 */
 	public abstract String getSrs();
