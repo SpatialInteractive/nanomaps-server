@@ -9,10 +9,10 @@ mechanisms than are (easily) possible with other solutions that
 run within apache or other http servers.
 
 It internally uses [Mapnik](http://mapnik.org/) to render the maps
-via [the Mapnik JNI bindings](https://github.com/stellaeof/mapnik-jni).
+via [the Mapnik JNI bindings](https://github.com/SpatialInteractive/mapnik-jni).
 
 It also leverages [SQLite](http://www.sqlite.org/) via some [hacked custom
-Java bindings](https://github.com/stellaeof/sqlite4java-custom) that are based
+Java bindings](https://github.com/SpatialInteractive/sqlite4java-custom) that are based
 on [sqlite4java](http://code.google.com/p/sqlite4java/) to manage tile caching.
 This part is still being worked on offline and is not in this repo.
 
@@ -63,7 +63,7 @@ If you are on Windows, you have my condolences.
 
 ### Clone Repository
 
-	git clone --recursive git://github.com/stellaeof/nanomaps-server.git
+	git clone --recursive git://github.com/SpatialInteractive/nanomaps-server.git
 	cd nanomaps-server
 	
 	# Skip the following if you cloned recursively
@@ -97,7 +97,7 @@ You should get a web page with the colorized population map as presented
 a drop down of maps that were found in the instance/repository directory
 when the server started.  The default install only has the one "world_sample"
 but if you drop other *.mapnik.xml files into the repository directory (and
-restart), they should show up here.  The ui is [Nanomaps JS](https://github.com/stellaeof/nanomaps)
+restart), they should show up here.  The ui is [Nanomaps JS](https://github.com/SpatialInteractive/nanomaps)
 and should work on modern desktop browsers and mobile.
 
 Screenshots
@@ -105,20 +105,20 @@ Screenshots
 
 ### Default Installation
 
-![First Screen](https://github.com/stellaeof/nanomaps-server/raw/master/doc/screenshots/nanomaps-server-example.png)
+![First Screen](https://github.com/SpatialInteractive/nanomaps-server/raw/master/doc/screenshots/nanomaps-server-example.png)
 
 ### Zoomed In on a MapQuest OSM Map
 
 This is a proof of life of the server rendering a non-trivial OSM map.
 The source is actually a highly optimized fork of the (MapQuest OSM Style)[https://github.com/MapQuest/MapQuest-Mapnik-Style]
 rendered off of SQLite databases that have been optimized with another tool I've been working on called
-[Mapnik Distiller](https://github.com/stellaeof/mapnik-distiller).  
+[Mapnik Distiller](https://github.com/SpatialInteractive/mapnik-distiller).  
 It applies a number of optimizations to the OSM database with the
 end result being that functional, relatively high performance maps can be rendered on modest hardware.
 I've been running it on a 6 year old Linux desktop with 2GB of RAM with pretty decent
 rendering performance at all zoom levels (~250ms/tile depending on zoom level).
 
-![MapQuest OSM](https://github.com/stellaeof/nanomaps-server/raw/master/doc/screenshots/nanomaps-server-zoomed-in.png)
+![MapQuest OSM](https://github.com/SpatialInteractive/nanomaps-server/raw/master/doc/screenshots/nanomaps-server-zoomed-in.png)
 
 Configuration
 =============

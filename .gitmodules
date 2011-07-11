@@ -1,9 +1,9 @@
 [submodule "external/mapnik-jni"]
 	path = external/mapnik-jni
-	url = git://github.com/stellaeof/mapnik-jni.git
+	url = git://github.com/SpatialInteractive/mapnik-jni.git
 [submodule "external/sqlite4java-custom"]
 	path = external/sqlite4java-custom
-	url = git://github.com/stellaeof/sqlite4java-custom.git
+	url = git://github.com/SpatialInteractive/sqlite4java-custom.git
 [submodule "external/rccoreutil"]
 	path = external/rccoreutil
-	url = git://github.com/stellaeof/rccoreutil.git
+	url = git://github.com/SpatialInteractive/rccoreutil.git
