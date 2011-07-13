@@ -469,18 +469,20 @@ public class MapRequestHandler extends ThreadedRequestHandler implements RenderC
 	public void doRender(RenderRequest rr) throws Exception {
 		MapDefinition m=rr.resource.createMap(MapRequestHandler.class);
 		int bufferSize=rr.renderInfo.bufferPixels;
-		
-		m.setSrs(rr.renderInfo.projection.getSrs());
-		m.resize(rr.renderInfo.width, rr.renderInfo.height);
-		m.zoomToBox(rr.renderInfo.bounds);
-		m.setBufferSize((int)(bufferSize * rr.renderInfo.pixelRatio));
-		
+
+		// Important! Because maps are cached, we need to reset this first or else
+		// it will not effect this draw as we expect
 		AspectFixMode afm=rr.renderInfo.aspectFixMode;
 		if (afm==null) {
 			m.setAspectFixMode(AspectFixMode.GROW_BBOX);
 		} else {
 			m.setAspectFixMode(afm);
 		}
+
+		m.setSrs(rr.renderInfo.projection.getSrs());
+		m.resize(rr.renderInfo.width, rr.renderInfo.height);
+		m.zoomToBox(rr.renderInfo.bounds);
+		m.setBufferSize((int)(bufferSize * rr.renderInfo.pixelRatio));
 		
 		logger.info("Rendering tile with bounds " + rr.renderInfo.bounds + " and aspect fix mode=" + m.getAspectFixMode());
 		Image image;
