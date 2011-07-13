@@ -18,19 +18,9 @@ public class RenderRequest implements Comparable<RenderRequest> {
 	public boolean error=false;
 	public volatile boolean cancelled=false;
 	
-	// Defaults that can be changed
-	public int tileWidth=256;
-	public int tileHeight=256;
-	
-	// Originating Request parameters
-	public String mapName;
-	public Integer level;
-	public Integer x;
-	public Integer y;
-	
-	public boolean isValid() {
-		return !error && mapName!=null && level!=null && x!=null && y!=null;
-	}
+	// Render Info
+	public MapResource resource;
+	public RenderInfo renderInfo;
 	
 	@Override
 	public int compareTo(RenderRequest o) {
@@ -39,5 +29,8 @@ public class RenderRequest implements Comparable<RenderRequest> {
 		return ret;
 	}
 	
-	
+	// Compatibility methods
+	public double getLevel() {
+		return renderInfo.getLevel();
+	}
 }

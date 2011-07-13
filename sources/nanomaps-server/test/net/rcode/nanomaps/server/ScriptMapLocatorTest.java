@@ -47,12 +47,12 @@ public class ScriptMapLocatorTest {
 		
 		
 		RenderRequest rr1=new RenderRequest();
-		rr1.level=1;
+		//rr1.level=1;
 		MapResource map1=repos.lookupMap("map").resolve(rr1);
 		assertSame(dummy1, map1);
 		
 		RenderRequest rr2=new RenderRequest();
-		rr2.level=2;
+		//rr2.level=2;
 		MapResource map2=repos.lookupMap("map").resolve(rr2);
 		assertSame(dummy2, map2);
 	}
@@ -69,12 +69,12 @@ public class ScriptMapLocatorTest {
 		
 		
 		RenderRequest rr1=new RenderRequest();
-		rr1.level=1;
+		//rr1.level=1;
 		MapResource map1=repos.lookupMap("map").resolve(rr1);
 		assertSame(dummy1, map1);
 		
 		RenderRequest rr2=new RenderRequest();
-		rr2.level=2;
+		//rr2.level=2;
 		MapResource map2=repos.lookupMap("map").resolve(rr2);
 		assertSame(dummy2, map2);
 	}
