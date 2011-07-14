@@ -89,6 +89,8 @@ public class ScriptMapLocator extends AbstractMapLocator implements MapLocator, 
 			return (MapResource) resolved;
 		} catch (Exception e) {
 			throw new RuntimeException("Exception while processing script " + pool.getScriptName(), e);
+		} finally {
+			pool.recycle(engine);
 		}
 	}
 	

@@ -59,7 +59,7 @@ public class ServerMain {
 		repository.scan();
 		
 		RenderService renderService=new RenderService(Runtime.getRuntime().availableProcessors()+1);
-
+		//RenderService renderService=new RenderService(1);
 
 		// Http Server setup
 		SimpleRequestDispatcher mainDispatcher=new SimpleRequestDispatcher();

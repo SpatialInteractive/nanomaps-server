@@ -46,7 +46,7 @@ public class MapnikMapResource extends AbstractMapLocator implements MapLocator,
 		mapFileContents=IOUtil.loadXmlStandalone(canonicalMapFile).toString();
 		debugContents();
 		//logger.debug("Map file=" + mapFileContents);
-		newMap();
+		newMap().dispose();
 		
 		// Calculate the digest
 		IdentityHasher hasher=new IdentityHasher();
